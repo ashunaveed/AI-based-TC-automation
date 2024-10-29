@@ -1,0 +1,14 @@
+pandas==2.2.3
+requests == 2.32.0
+PySimpleGUI==4.60.5
+opencv-python==4.10.0.84
+camelot-py==0.11.0
+textdistance==4.6.2
+openpyxl==3.1.5
+lxml==5.2.1
+ghostscript
+XlsxWriter==3.2.0
+gputil==1.4.0
+accelerate==0.27.*
+lm_eval==0.3.0
+transformers==4.40.*
