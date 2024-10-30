@@ -8,10 +8,6 @@ from llama_cpp import Llama
 import textdistance
 import os, gc, datetime
 from collections import Counter
-import os
-import datetime
-import gc
-from llama_cpp import Llama
 
 class ParagraphComparer:
     def __init__(self, model_path):
@@ -138,7 +134,6 @@ class ParagraphComparer:
         self.para1 = para1
         self.para1_prepared = True
         self.paras.append(self.para1)
-        print('Para1 prepared as:', self.para1)
 
     def compare_with_para2(self, para2):
         """Compare para1 with the given para2."""
@@ -482,7 +477,7 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
                             except:
                                 pass
                             try:
-                                schedule = schedules 
+                                schedule = scheduleb 
                                 eligebility = rate_restrictions.item_restriction(item, schedule, any_restriction, comparer,use_AI)
                                 if(eligebility):
                                     continue
@@ -687,7 +682,7 @@ def LOA_references(L1tab, LOA_reef, PO1,use_AI):
             sg.popup(teexxt)   
         if(use_AI==1):
             model_dir = "models"
-            model_filename = "Meta-Llama-3-8B-Instruct-Q8_0.gguf"
+            model_filename = "Meta-Llama-3.1-8B-Instruct-Q8_0.gguf"
             model_path = os.path.join(model_dir, model_filename)
             comparer = ParagraphComparer(model_path=model_path)
         else:
@@ -711,7 +706,7 @@ def LOA_references(L1tab, LOA_reef, PO1,use_AI):
             sg.popup(teexxt)
             if(use_AI==1):
                 model_dir = "models"
-                model_filename = "Meta-Llama-3-8B-Instruct-Q8_0.gguf"
+                model_filename = "Meta-Llama-3.1-8B-Instruct-Q8_0.gguf"
                 model_path = os.path.join(model_dir, model_filename)
                 comparer = ParagraphComparer(model_path=model_path)
             else:
