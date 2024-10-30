@@ -8,7 +8,6 @@ from llama_cpp import Llama
 import textdistance
 import os, gc, datetime
 from collections import Counter
-
 class ParagraphComparer:
     def __init__(self, model_path):
         self.model = Llama(
@@ -36,7 +35,7 @@ class ParagraphComparer:
                 "no": "end_no"
             },
             "structure_check": {
-                "question": "Are the structural aspects of the object described similarly in both paras 'para1' AND 'para2'?",
+                "question": "Are the structural aspects of the object described similarly in both paras where paragraph1 is 'para1' AND paragraph2 is 'para2'?",
                 "yes": "features_check",
                 "no": "detail_discrepancy_check"
             },
@@ -46,37 +45,42 @@ class ParagraphComparer:
                 "no": "detail_discrepancy_check"
             },
             "context_check": {
-                "question": "Do the paras 'para1' AND 'para2' describe the object in the same context or setting?",
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Do the paras describe the object in the same context or setting?",
                 "yes": "terminology_check",
                 "no": "detail_discrepancy_check"
             },
             "terminology_check": {
-                "question": "Do the paras 'para1' AND 'para2' use similar terminology to describe the object?",
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Do the paras use similar terminology to describe the object?",
                 "yes": "detail_level_check",
                 "no": "discrepancy_check"
             },
             "detail_level_check": {
-                "question": "Does one paragraph provide significantly more or different details than the other in the paras 'para1' AND 'para2'?",
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Does one paragraph provide significantly more or different details than the other?",
                 "yes": "overall_impression_check",
                 "no": "discrepancy_check"
             },
-            "discrepancy_check": {
-                "question": "Are there any contradictions or discrepancies in the descriptions of objects in paras 'para1' AND 'para2'?",
-                "yes": "end_no",
-                "no": "overall_impression_check"
+            "additional_check_1": {
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Do these two paragraphs cover the same timeframe?",
+                "yes": "additional_check_2",
+                "no": "discrepancy_check"
             },
-            "detail_discrepancy_check": {
-                "question": "Do the paras 'para1' AND 'para2' differ significantly in detail or specificity?",
-                "yes": "end_no",
-                "no": "terminology_check"
+            "additional_check_2": {
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Is the tone consistent between both the paragraphs?",
+                "yes": "additional_check_3",
+                "no": "detail_discrepancy_check"
             },
-            "overall_impression_check": {
-                "question": "Do the paras 'para1' AND 'para2' create the same overall impression of the object?",
+            "additional_check_3": {
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Do the paras address the same object and subject type?",
+                "yes": "additional_check_4",
+                "no": "discrepancy_check"
+            },
+            "additional_check_4": {
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Are the descriptions equally detailed in both paras?",
                 "yes": "role_complement_check",
                 "no": "end_no"
             },
             "role_complement_check": {
-                "question": "Are the described functions or roles of the object in the paras 'para1' AND 'para2' complementary?",
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Are the described functions or roles of the object in the paras complementary?",
                 "yes": "end_yes",
                 "no": "end_no"
             },
@@ -84,19 +88,30 @@ class ParagraphComparer:
             "end_no": "no"
         }
 
+        # Add more questions in sub_items_tree and single_sub_items_tree
         self.sub_items_tree = {
             "root": {
-                "question": "Do the paras 'para1' AND 'para2' describe the same main work and refer to the same exclusive object?",
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Do the paras describe the same main work and refer to the same exclusive object?",
                 "yes": "discrepancy_check",
-                "no": "end_no"
+                "no": "additional_check_1"
             },
             "discrepancy_check": {
-                "question": "Are there any discrepancies that suggest the paras 'para1' AND 'para2' do not refer to the same exclusive object?",
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Are there any discrepancies that suggest the paras do not refer to the same exclusive object?",
                 "yes": "end_no",
                 "no": "overall_impression_check"
             },
+            "additional_check_1": {
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Do both paragraphs suggest a similar importance level?",
+                "yes": "additional_check_2",
+                "no": "end_no"
+            },
+            "additional_check_2": {
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Is the narrative style similar between the paragraphs'?",
+                "yes": "overall_impression_check",
+                "no": "end_no"
+            },
             "overall_impression_check": {
-                "question": "Do the paras 'para1' AND 'para2' create the same overall impression of the exclusive object?",
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Do the paras create the same overall impression of the exclusive object?",
                 "yes": "end_yes",
                 "no": "end_no"
             },
@@ -106,22 +121,32 @@ class ParagraphComparer:
 
         self.single_sub_items_tree = {
             "root": {
-                "question": "Do the paras 'para1' AND 'para2' describe the same object and use the same terminology?",
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Do the paras describe the same object and use the same terminology?",
                 "yes": "detailed_check",
                 "no": "end_no"
             },
             "detailed_check": {
-                "question": "Does one paragraph provide significantly more or different details about the object than the other in the paras 'para1' AND 'para2'?",
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Does one paragraph provide significantly more or different details about the object than the other?",
                 "yes": "discrepancy_check",
                 "no": "overall_impression_check"
             },
             "discrepancy_check": {
-                "question": "Are there any discrepancies that suggest the paras 'para1' AND 'para2' do not refer to the same object?",
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Are there any discrepancies that suggest the paragraphs do not refer to the same object?",
                 "yes": "end_no",
-                "no": "overall_impression_check"
+                "no": "additional_check_1"
+            },
+            "additional_check_1": {
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Is the tone of description in both paras comparable?",
+                "yes": "additional_check_2",
+                "no": "end_no"
+            },
+            "additional_check_2": {
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Are both descriptions neutral and unbiased?",
+                "yes": "overall_impression_check",
+                "no": "end_no"
             },
             "overall_impression_check": {
-                "question": "Do the paras 'para1' AND 'para2' create the same overall impression of the same exclusive object?",
+                "question": "You are given two paras, where paragraph1 is 'para1' and paragraph2 is 'para2', Do the paragraphs create the same overall impression of the same exclusive object?",
                 "yes": "end_yes",
                 "no": "end_no"
             },
@@ -154,27 +179,28 @@ class ParagraphComparer:
             result = self._traverse_questions(self.questions_tree)
         
         return result
-    def _traverse_questions(self, tree, current_node="root"):
-            """Traverse the question tree based on model responses, returning yes if at least 50% of responses are yes."""
-            yes_count = 0
-            total_questions = 0
-            
-            while current_node not in ["end_yes", "end_no"]:
-                node = tree[current_node]
-                question = node["question"].replace('para1', self.para1).replace('para2', self.para2)
-                answer = self._ask_question(question)
-                
-                # Count 'yes' responses and total questions asked
-                yes_count += 1 if answer else 0
-                total_questions += 1
 
-                current_node = node["yes"] if answer else node["no"]
+    def _traverse_questions(self, tree, current_node="root"):
+        """Traverse the question tree based on model responses, returning yes if at least 50% of responses are yes."""
+        yes_count = 0
+        total_questions = 0
+        
+        while current_node not in ["end_yes", "end_no"]:
+            node = tree[current_node]
+            question = node["question"].replace('para1', self.para1).replace('para2', self.para2)
+            answer = self._ask_question(question)
             
-            # Check if yes responses meet or exceed 50% of total questions
-            return yes_count >= total_questions / 2
+            # Count 'yes' responses and total questions asked
+            yes_count += 1 if answer else 0
+            total_questions += 1
+
+            current_node = node["yes"] if answer else node["no"]
+        
+        # Check if yes responses meet or exceed 50% of total questions
+        return yes_count >= total_questions / 2
 
     def _ask_question(self, question):
-        """Ask a single question to the model."""
+        """Ask a single question to the model, limiting response to 50 characters."""
         try:
             completion = self.model.create_chat_completion(
                 messages=[
@@ -182,7 +208,7 @@ class ParagraphComparer:
                     {"role": "user", "content": question}
                 ]
             )
-            answer = completion['choices'][0]['message']['content'].lower()
+            answer = completion['choices'][0]['message']['content'][:50].lower()  # Limit to 50 characters
             return 'yes' in answer.lower()
         except Exception as e:
             print(f"Error during model inference: {e}")
