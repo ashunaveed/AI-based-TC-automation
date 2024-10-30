@@ -79,7 +79,7 @@ def merge_and_align_cells(workbook, processed_data, path):
     workbook.save(path)
 
 
-def process_file(event, use_AI, folder_index, function, file_ext):
+def process_file(work_folders, use_AI, folder_index, function, file_ext):
     """Process file based on event and save the result."""
     try:
         processed_data = function(use_AI)
@@ -127,21 +127,21 @@ def main():
 
     while True:
         event, values = window.read()
-        use_AI = int(values["-USE_AI-"])
+        use_AI = int(values.get("-USE_AI-", 0))
         if event == sg.WINDOW_CLOSED:
             break
         elif event == "-LOA1-":
-            process_file(event, use_AI, 0, final_schedule.main, 'xlsx')
+            process_file(work_folders, use_AI, 0, final_schedule.main, 'xlsx')
         elif event == "-MIN_LOA-":
-            process_file(event, use_AI, 1, Sub_works_references.main, 'xlsx')
+            process_file(work_folders, use_AI, 1, Sub_works_references.main, 'xlsx')
         elif event == "-FINAL_main_work-":
             filepath = values["-EXCEL1-"]
             if filepath:
-                process_file(event, 2, DOCX_writing.main, 'xlsx')
+                process_file(work_folders, filepath, 2, DOCX_writing.main, 'xlsx')
         elif event == "-FINAL_sub_work-":
             filepath = values["-EXCEL2-"]
             if filepath:
-                process_file(event, 3, Sub_works_writing.main, 'xlsx')
+                process_file(work_folders, filepath, 3, Sub_works_writing.main, 'xlsx')
 
     window.close()
 
