@@ -154,15 +154,24 @@ class ParagraphComparer:
             result = self._traverse_questions(self.questions_tree)
         
         return result
-
     def _traverse_questions(self, tree, current_node="root"):
-        """Traverse the question tree based on model responses."""
-        while current_node not in ["end_yes", "end_no"]:
-            node = tree[current_node]
-            question = node["question"].replace('para1', self.para1).replace('para2', self.para2)
-            answer = self._ask_question(question)
-            current_node = node["yes"] if answer else node["no"]
-        return current_node == "end_yes"
+            """Traverse the question tree based on model responses, returning yes if at least 50% of responses are yes."""
+            yes_count = 0
+            total_questions = 0
+            
+            while current_node not in ["end_yes", "end_no"]:
+                node = tree[current_node]
+                question = node["question"].replace('para1', self.para1).replace('para2', self.para2)
+                answer = self._ask_question(question)
+                
+                # Count 'yes' responses and total questions asked
+                yes_count += 1 if answer else 0
+                total_questions += 1
+
+                current_node = node["yes"] if answer else node["no"]
+            
+            # Check if yes responses meet or exceed 50% of total questions
+            return yes_count >= total_questions / 2
 
     def _ask_question(self, question):
         """Ask a single question to the model."""
@@ -238,8 +247,6 @@ def get_index(x,sttring,index, comparer,use_AI):
             if(distance_1<limit):
                 distance_1=0
             matcho.append(distance_1)
-            if(distance_1>=0.99):
-                break
         elif('item' in x.iloc[i,0].lower()):
             item= x.iloc[i,1]
             if('schedule' in item.lower() and len(item)<17+len('schedule')):
@@ -261,10 +268,10 @@ def get_index(x,sttring,index, comparer,use_AI):
     if(use_AI==0):
         ii = matcho.index(max(matcho))
         return [ii,max(matcho)]
-    if(max(matcho)<0.99):
+    if(max(matcho)<0.95):
         comparer.prepare_para1(sttring)
         for i in range(len(matcho)):
-            if(matcho[i]<0.99 and matcho[i]>limit):
+            if(matcho[i]>limit):
                 required=required_list[i]
                 if(len(required)<0.3*len(sttring) or len(sttring)<0.3*len(required) or len(required)<10 or len(sttring)<10):
                     pass
@@ -297,10 +304,10 @@ def get_index2(x,sttring, comparer, use_AI):
     if(use_AI==0):
         ii = matcho.index(max(matcho))
         return [ii,max(matcho)]
-    if(max(matcho)<0.99):
+    if(max(matcho)<0.95):
         comparer.prepare_para1(sttring)
         for i in range(len(matcho)):
-            if(matcho[i]<0.99 and matcho[i]>limit):
+            if(matcho[i]>limit):
                 required = x.iloc[i+1,0]
                 result = comparer.compare_with_para2(required)
                 if(result):
