@@ -206,7 +206,7 @@ class ParagraphComparer:
                 messages=[
                     {"role": "system", "content": self.system_message},
                     {"role": "user", "content": question}
-                ]
+                ], max_tokens=25
             )
             answer = completion['choices'][0]['message']['content'][:50].lower()  # Limit to 50 characters
             return 'yes' in answer.lower()
