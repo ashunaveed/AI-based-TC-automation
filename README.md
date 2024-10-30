@@ -4,8 +4,9 @@ System_Requirements:
 1. Windows 10 or 11
 2. Atleast 16GB RAM 
 3. Microsoft Excel 2013 or greater.
-4. Ghostscript as per windows(32 bit or 64 bit)
-5. A good GPU of atleast 8GB for running AI model.
+4. Visual studio latest version.
+5. Ghostscript as per windows(32 bit or 64 bit)
+6. A good GPU of atleast 8GB for running AI model.
 
 # Functional Requirements:
 1. Please download the bid file and LAR files(LOA) from IREPS in HTML format and
