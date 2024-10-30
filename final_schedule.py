@@ -84,6 +84,11 @@ class ParagraphComparer:
                 "yes": "end_yes",
                 "no": "end_no"
             },
+            "detail_discrepancy_check": {
+                "question": "Is there a significant discrepancy in the details provided by 'para1' and 'para2'?",
+                "yes": "end_no",
+                "no": "end_yes"
+            },
             "end_yes": "yes",
             "end_no": "no"
         }
