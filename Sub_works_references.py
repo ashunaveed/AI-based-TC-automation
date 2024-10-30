@@ -35,7 +35,7 @@ def get_indexa(x,schedule_index,schedule_index_name,index):
             matcho.append(0)
     ii = matcho.index(max(matcho))
     return [ii,max(matcho)]
-def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,Engg = False, comparer, use_AI):
+def Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg = False):
     L1tab = L1tab.applymap(str)
     restrictions = []
     print('Entered rate restrictions')
@@ -47,6 +47,7 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,Engg = False, comparer, use_
                 columnns = List(L1tab.columns)
             L1tab.loc[0,ww]=LOA_names_dates[i]
             x = LOA_ref[i][0]
+            any_restriction = LOA_ref[i][-1]
             print('started with ', LOA_names_dates[i])
             restrictions.append(LOA_ref[i][-1]) 
             if(len(LOA_ref[i])>2):
@@ -128,11 +129,13 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,Engg = False, comparer, use_
                                     continue
                             try:
                                 Schedule_name, rate=final_schedule.single_schedule(schedules,zz, index1,schedules_single_at,rate)    
-                                L1tab = single_df(Schedule_name, s_no, name, rate, motchoa, k ,ww)
+                                L1tab = single_df(Schedule_name, s_no, name, rate, matchoa, k ,ww)
                             except:
                                 pass
                         elif(L1tab.iloc[k,0]=='' and L1tab.iloc[k,0]==L1tab.iloc[k,1] and L1tab.iloc[k,0]==L1tab.iloc[k,4] and main_item!=L1tab.iloc[k,2]):
                             main_item = L1tab.iloc[k,2]
+                        else:
+                            scheduleb = L1tab.iloc[k,0]
                     except:
                         continue
                 else:
@@ -172,11 +175,13 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,Engg = False, comparer, use_
                                 pass
                     elif(L1tab.iloc[k,0]=='' and L1tab.iloc[k,0]==L1tab.iloc[k,1] and L1tab.iloc[k,0]==L1tab.iloc[k,4] and main_item!=L1tab.iloc[k,2]):
                         main_item = L1tab.iloc[k,2]
+                    else:
+                        schedulea = L1tab.iloc[k,0]
         except:
             print('Found error in ',LOA_names_dates[i],'\n')
             continue
     try:
-        restrictions= ['px' for i in range(ww0)]+restrictions
+        restrictions= ['px' for i in range(len(L1tab)-len(restrictions))]
         print('Got to restrictions')
         print(len(restrictions))
         print(len(L1tab.columns))
@@ -192,7 +197,7 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,Engg = False, comparer, use_
 def single_df(Schedule_name, s_no, name, rate, motcha, k ,ww):
     L1tab.loc[k,ww]= str(Schedule_name +' S.no. '+s_no + ' $#$ '+motcha+' $#$ '+name+' $#$ '+rate)
     return L1tab
-def LOA_references(L1tab, LOA_reef, PO1,Engg, use_AI, comparer):
+def LOA_references(L1tab, LOA_reef, PO1, use_AI, comparer,Engg):
     '''
     This fn initializes the comparision of schedule.
     '''
@@ -216,7 +221,7 @@ def LOA_references(L1tab, LOA_reef, PO1,Engg, use_AI, comparer):
             else:
                 LOA_ref.append([LOA1, rate_restrictions1])
                 print('Got LOA references')
-        Final_PO_report, comparer=Rates_comparision(L1tab,LOA_names_dates,LOA_ref,Engg, comparer, use_AI)
+        Final_PO_report, comparer=Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg)
         if isinstance(L1tab, pd.DataFrame) and PO1!='nothing':
             PO=final_schedule.PO_select(PO1).applymap(str)
             Final_PO_report, comparer = PO_comparision(PO, Final_PO_report, comparer, use_AI)
@@ -308,7 +313,7 @@ def main(use_AI):
         for i in range(len(L1tabs)):
             try:
                 print('Started with ', str(i+1),' referenceing')
-                final_sub_schedule.append(LOA_references(L1tabs[i], subwork_Reference_files[i], PO1s[i],Engg[i], use_AI, comaparer))
+                final_sub_schedule.append(LOA_references(L1tabs[i], subwork_Reference_files[i], PO1s[i], use_AI, comaparer,Engg[i]))
                 print('Scheduling of Subwork_',str(i+1),' is completed')
             except:
                 continue
