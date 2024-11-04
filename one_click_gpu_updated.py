@@ -64,7 +64,7 @@ def check_and_install_requirements():
         else:
             print("All packages in requirements.txt are already installed.")
         package_name = "llama_cpp_python"
-        cuda_package_url = "https://github.com/oobabooga/llama-cpp-python-cuBLAS-wheels/releases/download/textgen-webui/llama_cpp_python_cuda_tensorcores-0.3.1+cu121-cp311-cp311-win_amd64.whl"
+        cuda_package_url = "https://github.com/abetlen/llama-cpp-python/releases/download/v0.2.90-cu124/llama_cpp_python-0.2.90-cp311-cp311-win_amd64.whl"
         cpu_package_url = "https://github.com/abetlen/llama-cpp-python/releases/download/v0.2.90/llama_cpp_python-0.2.90-cp311-cp311-win_amd64.whl"
         # Main logic
         if is_package_installed(package_name):
