@@ -63,16 +63,21 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg = Fal
             zz = re.compile('\d+.\d+')
             escaa =re.compile('\w+\s\w+')
             main_item = ''
+            direction_of_search = 0
             for k in range(len(L1tab)):
                 if tt:
                     try:
                         if(L1tab.iloc[k,0].isdigit()):# getting error in this
                             item = L1tab.iloc[k,0]
-                            distance_main_item = 1-textdistance.Cosine(qval=2).normalized_distance(L1tab.iloc[k,2], L1tab.iloc[k-1,2])
+                            if(direction_of_search==0):
+                                distance_main_item = 1-textdistance.Cosine(qval=2).normalized_distance(L1tab.iloc[k,2], L1tab.iloc[k+1,2])
+                                direction_of_search =1
+                            else:
+                                distance_main_item = 1-textdistance.Cosine(qval=2).normalized_distance(L1tab.iloc[k,2], L1tab.iloc[k-1,2])
                             if(distance_main_item<0.75):
                                 main_item=''
                             if(len(main_item)>1):
-                                item_name = 'For the main work of '+main_item+' containing only the work of with only exclusive part of '+L1tab.iloc[k,2]
+                                item_name = 'For the main work of '+main_item+' containing only the exclusive work of '+L1tab.iloc[k,2]
                             else:
                                 item_name = L1tab.iloc[k,2]
                             try:
@@ -134,18 +139,25 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg = Fal
                                 pass
                         elif(L1tab.iloc[k,0]=='' and L1tab.iloc[k,0]==L1tab.iloc[k,1] and L1tab.iloc[k,0]==L1tab.iloc[k,4] and main_item!=L1tab.iloc[k,2]):
                             main_item = L1tab.iloc[k,2]
+                            direction_of_search = 0
                         else:
                             scheduleb = L1tab.iloc[k,0]
+                            main_item = ''
+                            direction_of_search =0
                     except:
                         continue
                 else:
                     if(L1tab.iloc[k,0].isdigit()):
                         serial_no_item = L1tab.iloc[k,0]
-                        distance_main_item = 1-textdistance.Cosine(qval=2).normalized_distance(L1tab.iloc[k,2], L1tab.iloc[k-1,2])
+                        if(direction_of_search ==0):
+                            distance_main_item = 1-textdistance.Cosine(qval=2).normalized_distance(L1tab.iloc[k,2], L1tab.iloc[k+1,2])
+                            direction_of_search =1
+                        else:
+                            distance_main_item = 1-textdistance.Cosine(qval=2).normalized_distance(L1tab.iloc[k,2], L1tab.iloc[k-1,2])
                         if(distance_main_item<0.75):
                             main_item=''
                         if(len(main_item)>1):
-                            item_name = 'For the main work of '+main_item+' containing only the work of with only exclusive part of '+L1tab.iloc[k,2]
+                            item_name = 'For the main work of '+main_item+' containing only the exclusive work of '+L1tab.iloc[k,2]
                         else:
                             item_name = L1tab.iloc[k,2]
                         try:
@@ -175,8 +187,11 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg = Fal
                                 pass
                     elif(L1tab.iloc[k,0]=='' and L1tab.iloc[k,0]==L1tab.iloc[k,1] and L1tab.iloc[k,0]==L1tab.iloc[k,4] and main_item!=L1tab.iloc[k,2]):
                         main_item = L1tab.iloc[k,2]
+                        direction_of_search =0
                     else:
                         schedulea = L1tab.iloc[k,0]
+                        main_item = ''
+                        direction_of_search =0
         except:
             print('Found error in ',LOA_names_dates[i],'\n')
             continue
