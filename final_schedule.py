@@ -20,7 +20,7 @@ class ParagraphComparer:
         self.para1_prepared = False
         self.para1 = ""
         self.paras = []
-        self.system_message = "You are a highly analytical and reasoning agent. You are being asked questions for comparing the detailed meaning of two paras. Respond only with one word, either 'yes' or 'no'. If you cannot arrive at any conclusion, respond with 'no'."
+        self.system_message = "You are a highly analytical and reasoning agent. You are being asked questions for comparing the meaning of two paras. Analyse the question with good reasoning and respond only with one word, either 'yes' or 'no'. If you cannot arrive at any conclusion, respond with 'no'."
 
         # Expanded tree-based question sets
         self.questions_tree = {
@@ -207,14 +207,20 @@ class ParagraphComparer:
     def _ask_question(self, question):
         """Ask a single question to the model, limiting response to 50 characters."""
         try:
-            completion = self.model.create_chat_completion(
-                messages=[
-                    {"role": "system", "content": self.system_message},
-                    {"role": "user", "content": question}
-                ], max_tokens=25
-            )
-            answer = completion['choices'][0]['message']['content'][:50].lower()  # Limit to 50 characters
-            return 'yes' in answer.lower()
+            truth=0
+            print('\n Started interacting with AI\n')
+            for i in range(25):
+                completion = self.model.create_chat_completion(
+                    messages=[
+                        {"role": "system", "content": self.system_message},
+                        {"role": "user", "content": question}
+                    ], max_tokens=25
+                )
+                answer = completion['choices'][0]['message']['content'].lower() 
+                if('yes' in answer.lower()):
+                    truth+=1
+            print('\nCompleted interaction with AI\n')
+            return truth>12
         except Exception as e:
             print(f"Error during model inference: {e}")
             return False
