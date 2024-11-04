@@ -25,7 +25,6 @@ def apply_format_to_sheet(sheet):
                 if is_italic:
                     cell.font = Font(underline='single')
 
-
 def get_fill_color(value):
     """Get the color for cell based on value."""
     if 0.6 <= value < 0.75:
@@ -36,8 +35,10 @@ def get_fill_color(value):
         return PatternFill(start_color=f"FFFF{intensity:02X}00", end_color=f"FFFF{intensity:02X}00", fill_type="solid")
     elif 0.9 <= value <= 1:
         intensity = int((value - 0.9) * 255 / 0.1)
-        return PatternFill(start_color=f"{(255-intensity):02X}FF{(255-intensity):02X}", end_color=f"{(255-intensity):02X}FF{(255-intensity):02X}", fill_type="solid")
-    return None
+        return PatternFill(start_color=f"FF{intensity:02X}FF00", end_color=f"FF{intensity:02X}FF00", fill_type="solid")
+    
+    # Default case to avoid returning None
+    return PatternFill(start_color="FFFFFFFF", end_color="FFFFFFFF", fill_type="solid")
 
 
 def create_folder_if_not_exists(folder_name):
@@ -128,6 +129,12 @@ def main():
     while True:
         event, values = window.read()
         use_AI = int(values.get("-USE_AI-", 0))
+        if(use_AI ==1):
+            print('\nUsing AI model\n')
+            use_AI =1
+        else:
+            print('\n Not using AI model\n')
+            use_AI =0
         if event == sg.WINDOW_CLOSED:
             break
         elif event == "-LOA1-":
