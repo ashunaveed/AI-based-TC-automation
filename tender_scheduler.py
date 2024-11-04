@@ -80,25 +80,6 @@ def merge_and_align_cells(workbook, processed_data, path):
     workbook.save(path)
 
 
-def process_file(work_folders, use_AI, folder_index, function, file_ext):
-    """Process file based on event and save the result."""
-    try:
-        processed_data = function(use_AI)
-        timestamp = datetime.datetime.now().strftime('%H_%M_%S of %d-%m')
-        temp_file = f"temporary_file_{timestamp}.{file_ext}"
-        folder_path = os.path.join(os.getcwd(), work_folders[folder_index])
-        output_path = os.path.join(folder_path, temp_file)
-        processed_data.to_excel(output_path, engine='openpyxl')
-        workbook = load_workbook(output_path)
-        for sheet_name in workbook.sheetnames:
-            apply_format_to_sheet(workbook[sheet_name])
-        final_file = f"final_comparision_file_{timestamp}.{file_ext}"
-        workbook.save(os.path.join(folder_path, final_file))
-        sg.popup(f'The file {final_file} is generated in {work_folders[folder_index]}')
-    except Exception as e:
-        sg.popup(f"An error occurred: {e}")
-
-
 def main():
     work_folders = [
         'main_work_comparision',
