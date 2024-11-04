@@ -202,7 +202,7 @@ class ParagraphComparer:
             current_node = node["yes"] if answer else node["no"]
         
         # Check if yes responses meet or exceed 50% of total questions
-        return yes_count >= total_questions / 2
+        return yes_count > total_questions / 2
 
     def _ask_question(self, question):
         """Ask a single question to the model, limiting response to 50 characters."""
@@ -249,12 +249,17 @@ def get_index(x,sttring,index, comparer,use_AI):
     required_list = []
     main_item=''
     item= ''
+    direction_of_search=0
     #print('Entered get index function')
     for i in range(len(x)):
         if(x.iloc[i,0].isdigit()):
             if(index==2):
                 distance_a = 1-textdistance.Cosine(qval=2).normalized_distance(x.iloc[i,index], sttring)
-                distance_main_item = 1-textdistance.Cosine(qval=2).normalized_distance(x.iloc[i,index], x.iloc[i-1,index])
+                if(direction_of_search==0):
+                    distance_main_item = 1-textdistance.Cosine(qval=2).normalized_distance(x.iloc[i,index], x.iloc[i+1,index])
+                    direction_of_search =1
+                else:
+                    distance_main_item = 1-textdistance.Cosine(qval=2).normalized_distance(x.iloc[i,index], x.iloc[i-1,index])
                 if(distance_main_item<0.75):
                     main_item=''
                 if(len(main_item)>1 and len(item)>0):
@@ -274,12 +279,14 @@ def get_index(x,sttring,index, comparer,use_AI):
             else:
                 required=x.iloc[i,index]
                 required_list.append(required)
-                distance_1 = 1-textdistance.Cosine(qval=2).normalized_distance(required, sttring)
+                distance_1 = 1-textdistance.Cosine(qval=2).normalized_distance(required_list[-1], sttring)
             if(distance_1<limit):
                 distance_1=0
             matcho.append(distance_1)
         elif('item' in x.iloc[i,0].lower()):
             item= x.iloc[i,1]
+            main_item = ''
+            direction_of_search=0
             if('schedule' in item.lower() and len(item)<17+len('schedule')):
                 # maximum that can be written is 'supply and installation'
                 item=''
@@ -291,6 +298,7 @@ def get_index(x,sttring,index, comparer,use_AI):
             matcho.append(0)
         elif(x.iloc[i,0]==x.iloc[i,1] and x.iloc[i,0]==x.iloc[i,3] and main_item!=x.iloc[i,2]):
             main_item = x.iloc[i,2]
+            direction_of_search=0
             required_list.append(0)
             matcho.append(0)
         else:
@@ -321,7 +329,7 @@ def get_index2(x,sttring, comparer, use_AI):
     '''
     limit = 0.7
     matcho=[]
-    for i in range(len(x)-2):
+    for i in range(1, len(x)-2):
         if(x.iloc[i,0].isdigit() and len(sttring)>=0.4*len(x.iloc[i+1,0]) and len(x.iloc[i+1,0])>=0.4*len(sttring)):
             required=x.iloc[i+1,0]
             distance_1 = 1-textdistance.Cosine(qval=2).normalized_distance(required, sttring)
@@ -525,6 +533,8 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
                                 pass
                             index,matchoa = get_index(items,L1tab.iloc[k+1,0],2, comparer, use_AI)
                             index1, matchob = get_index(schedules, L1tab.iloc[k+1,0],1, comparer,use_AI)
+                            if(items.iloc[index,2]==''):
+                                continue
                             if(matchoa==0 and matchob==0):
                                 continue
                             elif(matchoa>=matchob):
@@ -675,13 +685,14 @@ def LOA_references(L1tab, LOA_reef, PO1,use_AI):
             if(any('rebate' in str(item).lower() for item in L1tab.iloc[-2])):
                 rebate1 = L1tab.iloc[-2,-1]
                 rebate = float(zz.search(rebate1).group())
+                print('\n\n The rebate offered is ', rebate,'%. \n')
         except:
             rebate = 0
         L1tab.loc[0,widtth] ='Escalation'
         for i in range(len(L1tab)):
             if(L1tab.iloc[i,0]):
                 try:
-                    if(L1tab.iloc[i,5]=='At Par'):
+                    if(L1tab.iloc[i,5].lower()=='at par'):
                         if(rebate>=0):
                             L1tab.iloc[i,widtth]='-'+str(rebate)+'%'
                     else:
@@ -702,12 +713,16 @@ def LOA_references(L1tab, LOA_reef, PO1,use_AI):
                                         L1tab.iloc[i,widtth] = '-'+str(float(total1)+rebate)+' %'
                                 else:
                                     for hk in range(i,0,-1):
-                                        if(any(x in L1tab.iloc[hk,5].lower() for x in ['above','below'])):
+                                        if(any(x in L1tab.iloc[hk,5].lower() for x in ['above','below', 'at par', 'atpar'])):
                                             poer = zz.search(L1tab.iloc[hk,5]).group()
                                             if('above' in L1tab.iloc[hk,5].lower()):
                                                 L1tab.iloc[i,widtth] = str(float(poer)-rebate)+' %'
                                             elif('below' in L1tab.iloc[hk,5].lower()):
                                                 L1tab.iloc[i,widtth] = '-'+str(float(poer)+rebate)+' %'
+                                            elif('at par' in L1tab.iloc[hk,5].lower()):
+                                                L1tab.iloc[i,widtth] = ' '+str(rebate)+' %'
+                                            elif('atpar' in L1tab.iloc[hk,5].lower()):
+                                                L1tab.iloc[i,widtth] = ' '+str(rebate)+' %'
                                             break
                 except:
                     L1tab.loc[i,widtth]=''
