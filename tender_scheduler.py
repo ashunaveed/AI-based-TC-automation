@@ -118,25 +118,25 @@ def main():
             use_AI =0
         if event == sg.WINDOW_CLOSED:
             break
-       elif event == "-LOA1-":
-            #try:
-            processed_data1 = final_schedule.main(use_AI) 
-            toime = datetime.datetime.now().strftime('%H_%M_%S of %d-%m')
-            file_name = f"temporary_file_{toime}.xlsx"
-            folder_path = os.path.join(current_directory,work_folders[0])
-            path1 = os.path.join(folder_path, file_name)
-            #print('Path1 taken')
-            processed_data1.to_excel(path1, engine = 'openpyxl')
-            file_name = f"main_works_comparision_file_{toime}.xlsx"
-            patha = os.path.join(folder_path, file_name)
-            workbook = openpyxl.load_workbook(path1)
-            for sheet_name in workbook.sheetnames:
-                apply_format_to_sheet(workbook[sheet_name])
-            # Save the workbook after formatting
-            workbook.save(patha)
-            sg.popup('The Excel sheet named primary_work_bid_comparision is generated in ',work_folders[0])
-            #except:
-            #    sg.popup('Please select valid HTML/PDF files')
+        elif event == "-LOA1-":
+            try:
+                processed_data1 = final_schedule.main(use_AI) 
+                toime = datetime.datetime.now().strftime('%H_%M_%S of %d-%m')
+                file_name = f"temporary_file_{toime}.xlsx"
+                folder_path = os.path.join(current_directory,work_folders[0])
+                path1 = os.path.join(folder_path, file_name)
+                #print('Path1 taken')
+                processed_data1.to_excel(path1, engine = 'openpyxl')
+                file_name = f"main_works_comparision_file_{toime}.xlsx"
+                patha = os.path.join(folder_path, file_name)
+                workbook = openpyxl.load_workbook(path1)
+                for sheet_name in workbook.sheetnames:
+                    apply_format_to_sheet(workbook[sheet_name])
+                # Save the workbook after formatting
+                workbook.save(patha)
+                sg.popup('The Excel sheet named primary_work_bid_comparision is generated in ',work_folders[0])
+            except:
+                sg.popup('Please select valid HTML/PDF files')
         elif event == "-MIN_LOA-":
             try:
                 processed_data2 = Sub_works_references.main(use_AI)
