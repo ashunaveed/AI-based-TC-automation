@@ -14,3 +14,5 @@ System_Requirements:
 2. Please upload the documents as shown in the video.
 3. The output files will saved in the appropriate folders.
 4. Please clean the data as required.
+
+This work is opensource and available for future modifications.
