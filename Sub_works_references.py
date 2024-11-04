@@ -80,6 +80,8 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg = Fal
                                 item_name = 'For the main work of '+main_item+' containing only the exclusive work of '+L1tab.iloc[k,2]
                             else:
                                 item_name = L1tab.iloc[k,2]
+                                if(item_name==''):
+                                    continue
                             try:
                                 schedule = scheduleb 
                                 eligebility = rate_restrictions.item_restriction(item, schedule, any_restriction, comparer, use_AI)
@@ -196,16 +198,10 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg = Fal
             print('Found error in ',LOA_names_dates[i],'\n')
             continue
     try:
-        restrictions= ['px' for i in range(len(L1tab)-len(restrictions))]
-        print('Got to restrictions')
-        print(len(restrictions))
-        print(len(L1tab.columns))
-        restrictions = pd.DataFrame(restrictions, columns= L1tab.columns)
-        print(restrictions.head())
-        print('_________')
-        print(L1tab.head())
-        L1tab= pd.concat([L1tab,restrictions], ignore_index = True)
-        print('Connected restrictions to L1tab')
+        restrictions1= ['px' for i in range(len(L1tab)-len(restrictions))]+restrictions
+        restrictions2 = pd.DataFrame(restrictions1, columns= L1tab.columns)
+        L1tab= pd.concat([L1tab,restrictions2], ignore_index = True)
+        print('Connected restrictions to the end of the schedule')
     except:
         L1tab = L1tab
     return L1tab, comparer
