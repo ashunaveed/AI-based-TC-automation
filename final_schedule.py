@@ -570,8 +570,8 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
                                 try:
                                     if(itea in Schedule_name):
                                         name = name1
-                                    except:
-                                        pass
+                                except:
+                                    pass
                                 L1tab = main_df_writing(L1tab, ww, Schedule_name, rate, matchoa,k,serial_no,name)
                             except:
                                 pass
