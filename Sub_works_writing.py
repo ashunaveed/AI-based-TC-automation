@@ -3,7 +3,7 @@ import re
 import pandas as pd
 import DOCX_writing
 
-def ref_sno(k, qrate, slab, doccuument, refgexs):
+def ref_sno(k, qrate, slab, doccuument, refgexs, bid_slab):
     ref = []
     rates = []
     avg = 0
@@ -13,7 +13,6 @@ def ref_sno(k, qrate, slab, doccuument, refgexs):
         cell_value = doccuument.iloc[k, p]
         if pd.isna(cell_value):
             continue
-
         match = refgexs.search(cell_value)
         if match:
             ss = cell_value.split("$#$")
@@ -22,18 +21,19 @@ def ref_sno(k, qrate, slab, doccuument, refgexs):
             rates.append(nos)
             avg += float(nos)
             noo += 1
-
     if noo > 0:
         avgg = avg / noo
         per = round(((float(qrate) - avgg) / avgg) * 100, 2)
+        
         dec = 'acceptance of rate' if float(per) < slab else 'One round of negotiation'
+
         return ref, rates, str(round(avgg, 2)), str(per), dec
     else:
         return [], [], '0', '0', '0'
 
 def main_writing(doccuument, final_draft, sheet, refgexs):
     esca_input_text = f"For {sheet}: Enter how much % variation from advertised value is quoted by the contractor including the rebate value"
-    esca = sg.popup_get_text(esca_input_text, title="Net Escalation Input", keep_on_top=True) or "0"
+    esca2 = sg.popup_get_text(esca_input_text, title="Net Escalation Input", keep_on_top=True) or "0"
     
     slab_input_text = f"For {sheet}: Enter how much % variation from bid rate for each item can be accepted, default is 10%"
     slab = float(sg.popup_get_text(slab_input_text, title="Bid Variation Input", keep_on_top=True) or 10)
@@ -44,31 +44,27 @@ def main_writing(doccuument, final_draft, sheet, refgexs):
     for i in range(len(doccuument) - 1):
         if doccuument.iloc[i, 0].isdigit():
             item_name = f"For the item: {doccuument.iloc[i, 1]}, the valid L1 has quoted"
-
             try:
-                rate1 = refgexs.search(doccuument.iloc[i, 5]).group()
-                esca_val = doccuument.iloc[i, 7]
+                rate1 = refgexs.search(doccuument.iloc[i, 4]).group()
+                esca_val = doccuument.iloc[i, 6].lower()
                 esca1 = 0
-                
-                if 'above' in esca_val or 'Above' in esca_val:
-                    esca1 = refgexs.search(esca_val).group()
-                elif 'below' in esca_val or 'Below' in esca_val:
-                    esca1 = '-' + refgexs.search(esca_val).group()
-                elif esca_val == 'at par' or esca_val == '':
+                if esca_val == 'at par' or esca_val == '' or esca_val=='0%':
                     esca1 = 0
+                elif 'above'== esca_val:
+                    esca1 = refgexs.search(esca_val).group()
+                elif 'below' == esca_val:
+                    esca1 = '-' + refgexs.search(esca_val).group()
                 else:
                     esca1 = refgexs.search(esca_val).group()
                     if '-' in esca_val:
                         esca1 = '-' + esca1
-
                 esca1 = float(esca1)
-                esca = float(esca1) + float(esca)
+                esca = float(esca1) + float(esca2)
                 rate1 = str(round(float(rate1) * (1 + esca / 100), 2))
             except:
                 continue
-
-            Ref, rates, avg_rate, per, dec = ref_sno(i, rate1, slab3, doccuument, refgexs)
-            namw = f"{item_name} Rs.{rate1} which is {round(esca, 2)}% of the advertised rate."
+            namw = f"{item_name} Rs.{rate1} which is varying by {round(esca, 2)}% of the advertised rate."
+            Ref, rates, avg_rate, per, dec = ref_sno(i, rate1, slab3, doccuument, refgexs, slab)
             final_draft = DOCX_writing.draft(Ref, rates, avg_rate, per, dec, final_draft, esca, rate1, slab, slab3, doccuument, namw, rate1)
 
         else:
