@@ -335,7 +335,7 @@ def get_index2(x,sttring, comparer, use_AI, type_of_bid):
     '''
     limit = 0.7
     matcho=[]
-    if(type_of_bid = 0):
+    if(type_of_bid == 0):
         row1 = 0
         col1 = 2
     else:
