@@ -37,14 +37,11 @@ def get_indexa(x,schedule_index,schedule_index_name,index):
     return [ii,max(matcho)]
 def Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg = False):
     L1tab = L1tab.applymap(str)
-    restrictions = []
+    restrictions = ['nil_{i}' for i in range(len(L1tab.columns))]
     print('Entered rate restrictions')
     for i in range(len(LOA_names_dates)):
         try:
             ww =len(L1tab.columns)
-            if(i ==0):
-                ww0 = ww
-                columnns = List(L1tab.columns)
             L1tab.loc[0,ww]=LOA_names_dates[i]
             x = LOA_ref[i][0]
             any_restriction = LOA_ref[i][-1]
@@ -76,7 +73,7 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg = Fal
                                 distance_main_item = 1-textdistance.Cosine(qval=2).normalized_distance(L1tab.iloc[k,2], L1tab.iloc[k-1,2])
                             if(distance_main_item<0.75):
                                 main_item=''
-                            if(len(main_item)>1):
+                            elif(len(main_item)>1):
                                 item_name = 'For the main work of '+main_item+' containing only the exclusive work of '+L1tab.iloc[k,2]
                             else:
                                 item_name = L1tab.iloc[k,2]
@@ -98,8 +95,16 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg = Fal
                                 index,matchoa = final_schedule.get_index(items,item_name,2, comparer, use_AI)
                             index1, matchob = final_schedule.get_index(schedules, item_name,1, comparer, use_AI)
                             pattern = r"\b[A-Za-z]+"
-                            if(matchoa>matchob):
+                            if(items.iloc[index,2]==''):
+                                continue
+                            if(matchoa==0 and matchob==0):
+                                continue
+                            elif(matchoa>=matchob):
                                 name='S.no '+items.iloc[index,1]+' '+items.iloc[index,2]
+                                try:
+                                    rate = zz.search(items.iloc[index,5]).group().replace(',','')
+                                except:
+                                    continue
                                 itea = items_at[-1][0]
                                 for d in range(len(items_at)-1):
                                     if(index>items_at[d][-1] and index<items_at[d+1][-1]):
@@ -187,9 +192,6 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg = Fal
                                 L1tab = single_df(Schedule_name, x.iloc[index,0],x.iloc[index,1],rate,matchha, k,ww)
                             except:
                                 pass
-                    elif(L1tab.iloc[k,0]=='' and L1tab.iloc[k,0]==L1tab.iloc[k,1] and L1tab.iloc[k,0]==L1tab.iloc[k,4] and main_item!=L1tab.iloc[k,2]):
-                        main_item = L1tab.iloc[k,2]
-                        direction_of_search =0
                     else:
                         schedulea = L1tab.iloc[k,0]
                         main_item = ''
@@ -198,8 +200,7 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg = Fal
             print('Found error in ',LOA_names_dates[i],'\n')
             continue
     try:
-        restrictions1= ['px' for i in range(len(L1tab)-len(restrictions))]+restrictions
-        restrictions2 = pd.DataFrame(restrictions1, columns= L1tab.columns)
+        restrictions2 = pd.DataFrame(restrictions, columns= L1tab.columns)
         L1tab= pd.concat([L1tab,restrictions2], ignore_index = True)
         print('Connected restrictions to the end of the schedule')
     except:
@@ -228,10 +229,8 @@ def LOA_references(L1tab, LOA_reef, PO1, use_AI, comparer,Engg):
                 LOA_ref.append([LOA1,rate_restrictions1])
             elif(len(LOA[-1])>=3):
                 LOA_ref.append([LOA1, final_schedule.remove_duplicates1(LOA[-1]), rate_restrictions1])
-                print('Got LOA references')
             else:
                 LOA_ref.append([LOA1, rate_restrictions1])
-                print('Got LOA references')
         Final_PO_report, comparer=Rates_comparision(L1tab,LOA_names_dates,LOA_ref, comparer, use_AI,Engg)
         if isinstance(L1tab, pd.DataFrame) and PO1!='nothing':
             PO=final_schedule.PO_select(PO1).applymap(str)
