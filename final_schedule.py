@@ -366,28 +366,8 @@ def get_index2(x,sttring, comparer, use_AI, type_of_bid):
                     break
     ii = matcho.index(max(matcho))
     return [ii,max(matcho)]
-def rate_comp(x,index):
-    '''
-    This fn aim is to return the quoted bid rate from the dataframe given. It 
-    takes a dataframe and an index of it as input, sees whether the quotation is as a value, a 
-    percentage, on the whole schedule etc and returns the rate.
-    '''
-    zz = re.compile('\d+.\d+')
-    pattern = r"\b[A-Za-z]+"
 
-    # Find all matches
-    ss = ' '.join(re.findall(pattern, x.iloc[index,9])).lower()
-    if('Above'== ss):
-        per = 1+float(zz.search(x.iloc[index,8]).group())/100
-    elif('Below'== ss):
-        per = 1-float(zz.search(x.iloc[index,8]).group())/100
-    elif(x.iloc[index,8]==x.iloc[index,9]):
-        rate = zz.search(x.iloc[index,8]).group()
-        return rate
-    else:
-        per =1
-    rate = round(float(per*float(zz.search(x.iloc[index,5]).group())),2)
-    return str(rate)
+
 def rate_comp1(x,index,rate):
     '''
     This fn aim is to return the quoted bid rate from the dataframe given. It 
@@ -424,16 +404,10 @@ def rebate(x,rate):
         else:
             rate1=rate
     return str(round(rate1,2))
-def Schedules_at(items):
-    l = []
-    for i in range(len(items)-1):
-        if(items.iloc[i,0]=='Schedule'):
-            l.append([items.iloc[i,1],i])
-    return l        
 def Schedules_at1(items):
     l = []
     for i in range(len(items)):
-        if('Schedule ' in items.iloc[i,0]):
+        if('schedule ' in items.iloc[i,0].lower() and 'schedule total' not in items.iloc[i,0].lower()):
             l.append([items.iloc[i,0],i])
     return l    
 def items_at1(items):
@@ -450,7 +424,6 @@ def same_strings(string1, string2):
         return True
     return False
 def main_df_writing(L1tab, ww, Schedule_name, rate, matchoa,k,item_s_no, name1):
-    print('Started writing to excel sheet')
     L1tab.loc[k,ww]= str(Schedule_name +' S.no. '+item_s_no+'.'+' $#$ '+matchoa+' $#$ '+rate)
     L1tab.loc[k+1,ww]= str(name1+' $#$ '+str(matchoa.split(' $#$ ')[0]))
     print('Written one item to excel sheet')
@@ -458,7 +431,6 @@ def main_df_writing(L1tab, ww, Schedule_name, rate, matchoa,k,item_s_no, name1):
 def single_schedule(x,zz, index, schedules_single_at, rate1):
     try:
         Schedule_name = schedules_single_at[-1][0]
-        cell = x.iloc[index,8]
         pattern = r"\b[A-Za-z]+"
         try:
             try:
@@ -472,8 +444,17 @@ def single_schedule(x,zz, index, schedules_single_at, rate1):
                 Schedule_name = schedules_single_at[d][0]
                 indexax = schedules_single_at[d][-1]
                 break
+        if('view details' in x.iloc[index,5].lower()):
+            index -=1
+            if(Essca =='' or Essca == 'at par' or Essca==None):
+                rate = rate1
+            elif('-' in x.iloc[index,6]):
+                rate = str(float(rate1)*(1-float(Essca)/100))
+            else:
+                rate = str(float(rate1)*(1+float(Essca)/100))
+        cell = x.iloc[index,8]
         if(cell!='nan' and len(x.columns)==11):
-            rate = rate_comp(x,index)
+            rate = rate_comp1(x,index, rate)
         elif(cell!='nan' and len(x.columns)==10):
             rate = zz.search(cell).group()
         elif(cell=='nan'):
@@ -484,7 +465,7 @@ def single_schedule(x,zz, index, schedules_single_at, rate1):
                 rate = str(float(ratea)*(1-float(Essca)/100))
             else:
                 rate = str(float(ratea)*(1+float(Essca)/100))
-            if(x.iloc[index,6]=='At Par'):
+            if(x.iloc[index,6].lower()=='at par' or x.iloc[index,6].lower()=='atpar'):
                 for p in range(len(x)-1,0,-1):
                     if('Total Value' == x.iloc[p,0]):
                         zzs = rate
@@ -499,8 +480,8 @@ def single_schedule(x,zz, index, schedules_single_at, rate1):
             rate = zz.search(x.iloc[index,8]).group()
         rate = rebate(x,rate)
     except:
-        print('Found error comparing\n', L1tab.iloc[k+1,0] ,'\nat schedule level with\n',name)
-        return '0','0'
+        print('Found error comparing at schedule level with\n',x.iloc[index,1])
+        return 0,0
     return Schedule_name, rate
 def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
     L1tab = L1tab.applymap(str)
@@ -549,8 +530,8 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
                                 continue
                             if(matchoa==0 and matchob==0):
                                 continue
-                            elif(matchoa>=matchob):
-                                name='S.no '+items.iloc[index,1]+' '+items.iloc[index,2]
+                            elif(matchoa>=matchob or 'view details' in schedules.iloc[index1,5].lower()):
+                                name1='S.no '+items.iloc[index,1]+' '+items.iloc[index,2]
                                 try:
                                     rate = zz.search(items.iloc[index,5]).group().replace(',','')
                                 except:
@@ -568,11 +549,11 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
                                 try:
                                     same_quantity_unita = same_strings(re.sub('[^a-zA-Z]', '', L1tab.iloc[k,2]).lower(), items.iloc[index,3].lower())
                                     matchoa = str(matchoa)+ ' $#$ '+ str(same_quantity_unita)
-                                    name=itea
+                                    name=itea+' ' +name1
                                     serial_no= items.iloc[index,1]
                                 except:
                                     pass
-                            elif(matchob>matchoa):
+                            else:
                                 try:
                                     same_quantity_unit = same_strings(re.sub('[^a-zA-Z]', '', L1tab.iloc[k,2]).lower(), schedules.iloc[index1,4].lower())
                                     matchoa = str(matchob)+ ' $#$ '+ str(same_quantity_unit)
@@ -586,6 +567,11 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
                                     continue
                             try:
                                 Schedule_name, rate = single_schedule(schedules,zz, index1,schedules_single_at,rate)
+                                try:
+                                    if(itea in Schedule_name):
+                                        name = name1
+                                    except:
+                                        pass
                                 L1tab = main_df_writing(L1tab, ww, Schedule_name, rate, matchoa,k,serial_no,name)
                             except:
                                 pass
@@ -633,10 +619,15 @@ def PO_comparision(PO, L1tab, comparer, use_AI):
     for i in range(len(PO)):
         ww=len(L1tab.columns) 
         L1tab.loc[0,ww]= 'PO no '+str(PO.iloc[i,0])
-        index,similar_value = get_index2(L1tab, PO.iloc[i,1], comparer, use_AI, 1)
-        L1tab.loc[index,ww]= PO.iloc[i,2]+' $#$ '+str(similar_value)
-        L1tab.loc[index+1,ww]=PO.iloc[i,1]+' $#$ '+str(similar_value)
-        print('Written PO number ',i, ' in excel sheet')
+        index,similar_value = get_index2(L1tab, PO.iloc[i,1], comparer, use_AI,1)
+        if(index>1):
+            L1tab.loc[index,ww]= PO.iloc[i,2]+' $#$ '+str(similar_value)
+            L1tab.loc[index+1,ww]=PO.iloc[i,1]+' $#$ '+str(similar_value)
+            print('Written PO number ',i, ' in excel sheet')
+        else:
+            L1tab.loc[index+2,ww]= PO.iloc[i,2]+' $#$ '+str(similar_value)
+            L1tab.loc[index+3,ww]=PO.iloc[i,1]+' $#$ '+str(similar_value)
+            print('Written PO number ',i, ' in excel sheet as dummys. Please delete if not necessary')
     return L1tab, comparer
 def LOA_references(L1tab, LOA_reef, PO1,use_AI):
     '''
