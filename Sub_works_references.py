@@ -255,7 +255,7 @@ def PO_comparision(PO, L1tab, comparer, use_AI):
         try:
             ww=len(L1tab.columns) 
             L1tab.loc[0,ww]= 'PO no '+str(PO.iloc[i,0])
-            index,similar_value = final_schedule.get_index2(L1tab, PO.iloc[i,1], comparer, use_AI)
+            index,similar_value = final_schedule.get_index2(L1tab, PO.iloc[i,1], comparer, use_AI, 0)
             L1tab.loc[index,ww]= ' $#$ '+PO.iloc[i,1]+' $#$ '+ str(similar_value)+' $#$ '+ PO.iloc[i,2]
         except:
             pass
