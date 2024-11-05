@@ -106,6 +106,7 @@ def main():
     ]
     
     window = sg.Window("Tender Rate Comparator", layout)
+    current_directory= os.getcwd()
 
     while True:
         event, values = window.read()
@@ -129,7 +130,7 @@ def main():
                 processed_data1.to_excel(path1, engine = 'openpyxl')
                 file_name = f"main_works_comparision_file_{toime}.xlsx"
                 patha = os.path.join(folder_path, file_name)
-                workbook = openpyxl.load_workbook(path1)
+                workbook = load_workbook(path1)
                 for sheet_name in workbook.sheetnames:
                     apply_format_to_sheet(workbook[sheet_name])
                 # Save the workbook after formatting
@@ -138,27 +139,27 @@ def main():
             except:
                 sg.popup('Please select valid HTML/PDF files')
         elif event == "-MIN_LOA-":
-            try:
-                processed_data2 = Sub_works_references.main(use_AI)
-                toime = datetime.datetime.now().strftime('%H_%M_%S of %d-%m')
-                file_name = f"temporary_file_{toime}.xlsx"
-                folder_path = os.path.join(current_directory,work_folders[1])
-                path2 = os.path.join(folder_path, file_name)
-                excel_writer = pd.ExcelWriter(path2, engine="openpyxl")
-                # Write each DataFrame to a separate sheet in the Excel file
-                for idx, df in enumerate(processed_data2, start=1):
-                    sheet_name = f"Subwork_{idx}"  # Change the sheet name as needed
-                    df.to_excel(excel_writer, sheet_name=sheet_name, index=False)
-                excel_writer.book.save(path2)
-                workbook = openpyxl.load_workbook(path2)
-                for sheet_name in workbook.sheetnames:
-                    apply_format_to_sheet(workbook[sheet_name])
-                file_name = f"sub_works_comparision_file_{toime}.xlsx"
-                pathb = os.path.join(folder_path, file_name)
-                workbook.save(pathb)
-                sg.popup('The excel sheet is generated with name sub_work_bid_comparision on the desktop')
-            except:
-                sg.popup('Please select valid sub work HTML/PDF files')
+            #try:
+            processed_data2 = Sub_works_references.main(use_AI)
+            toime = datetime.datetime.now().strftime('%H_%M_%S of %d-%m')
+            file_name = f"temporary_file_{toime}.xlsx"
+            folder_path = os.path.join(current_directory,work_folders[1])
+            path2 = os.path.join(folder_path, file_name)
+            excel_writer = pd.ExcelWriter(path2, engine="openpyxl")
+            # Write each DataFrame to a separate sheet in the Excel file
+            for idx, df in enumerate(processed_data2, start=1):
+                sheet_name = f"Subwork_{idx}"  # Change the sheet name as needed
+                df.to_excel(excel_writer, sheet_name=sheet_name, index=False)
+            excel_writer.book.save(path2)
+            workbook = load_workbook(path2)
+            for sheet_name in workbook.sheetnames:
+                apply_format_to_sheet(workbook[sheet_name])
+            file_name = f"sub_works_comparision_file_{toime}.xlsx"
+            pathb = os.path.join(folder_path, file_name)
+            workbook.save(pathb)
+            sg.popup('The excel sheet is generated with name sub_work_bid_comparision on the desktop')
+            #except:
+            #    sg.popup('Please select valid sub work HTML/PDF files')
         elif event == "-FINAL_main_work-":
             try:
                 filepath = values["-EXCEL1-"]
@@ -169,7 +170,7 @@ def main():
                     folder_path = os.path.join(current_directory,work_folders[2])
                     path3 = os.path.join(folder_path, file_name)
                     processed_data3.to_excel(path3, engine = 'openpyxl')
-                    workbook = openpyxl.load_workbook(path3)
+                    workbook = load_workbook(path3)
                     sheet = workbook.active
                     cols = list(processed_data3.columns)
                     for col_num, col in enumerate(cols, start=1):
@@ -198,8 +199,8 @@ def main():
                     folder_path = os.path.join(current_directory,work_folders[3])
                     path4 = os.path.join(folder_path, file_name)
                     processed_data4 = Sub_works_writing.main(filepath)
-                    processed_data4.to_excel(path4, engine = 'xlsxwriter')
-                    workbook = openpyxl.load_workbook(path4)
+                    processed_data4.to_excel(path4, engine = 'openpyxl')
+                    workbook = load_workbook(path4)
                     sheet = workbook.active
                     cols = list(processed_data4.columns)
                     for col_num, col in enumerate(cols, start=1):
