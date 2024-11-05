@@ -327,7 +327,7 @@ def get_index(x,sttring,index, comparer,use_AI):
                     break
     ii = matcho.index(max(matcho))
     return [ii,max(matcho)]
-def get_index2(x,sttring, comparer, use_AI):
+def get_index2(x,sttring, comparer, use_AI, type_of_bid):
     '''
     This function takes two inputs, a dataframe and a string1 and matches each string in the 
     dataframe to the given string1 and returns the index of the string that gets the highest
@@ -335,9 +335,15 @@ def get_index2(x,sttring, comparer, use_AI):
     '''
     limit = 0.7
     matcho=[]
-    for i in range(1, len(x)-2):
-        if(x.iloc[i,0].isdigit() and len(sttring)>=0.4*len(x.iloc[i+1,0]) and len(x.iloc[i+1,0])>=0.4*len(sttring)):
-            required=x.iloc[i+1,0]
+    if(type_of_bid = 0):
+        row1 = 0
+        col1 = 2
+    else:
+        row1 = 1
+        col1 = 0
+    for i in range(len(x)-2):
+        if(x.iloc[i,0].isdigit() and len(sttring)>=0.4*len(x.iloc[i+row1,col1]) and len(x.iloc[i+row1,col1])>=0.4*len(sttring)):
+            required=x.iloc[i+row1,col1]
             distance_1 = 1-textdistance.Cosine(qval=2).normalized_distance(required, sttring)
             if(distance_1<limit):
                 distance_1=0
@@ -494,7 +500,7 @@ def single_schedule(x,zz, index, schedules_single_at, rate1):
         rate = rebate(x,rate)
     except:
         print('Found error comparing\n', L1tab.iloc[k+1,0] ,'\nat schedule level with\n',name)
-        return 0,0
+        return '0','0'
     return Schedule_name, rate
 def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
     L1tab = L1tab.applymap(str)
@@ -627,7 +633,7 @@ def PO_comparision(PO, L1tab, comparer, use_AI):
     for i in range(len(PO)):
         ww=len(L1tab.columns) 
         L1tab.loc[0,ww]= 'PO no '+str(PO.iloc[i,0])
-        index,similar_value = get_index2(L1tab, PO.iloc[i,1], comparer, use_AI)
+        index,similar_value = get_index2(L1tab, PO.iloc[i,1], comparer, use_AI, 1)
         L1tab.loc[index,ww]= PO.iloc[i,2]+' $#$ '+str(similar_value)
         L1tab.loc[index+1,ww]=PO.iloc[i,1]+' $#$ '+str(similar_value)
         print('Written PO number ',i, ' in excel sheet')
