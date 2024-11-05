@@ -531,7 +531,7 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
                             if(matchoa==0 and matchob==0):
                                 continue
                             elif(matchoa>=matchob or 'view details' in schedules.iloc[index1,5].lower()):
-                                name1='S.no '+items.iloc[index,1]+' '+items.iloc[index,2]
+                                name1=items.iloc[index,2]
                                 try:
                                     rate = zz.search(items.iloc[index,5]).group().replace(',','')
                                 except:
