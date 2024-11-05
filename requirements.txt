@@ -3,7 +3,7 @@ requests == 2.32.0
 PySimpleGUI==4.60.5
 opencv-python==4.10.0.84
 camelot-py==0.11.0
-textdistance==4.6.2
+textdistance==4.6.3
 openpyxl==3.1.5
 lxml==5.2.1
 ghostscript
