@@ -460,6 +460,8 @@ def single_schedule(x, zz, index, schedules_single_at, rate1 =0):
                 Essca =' '.join(re.findall(pattern, x.iloc[index,6])).lower() 
         except:
             Essca = ''
+        Schedule_name = schedules_single_at[-1][0]
+        indexax = schedules_single_at[-1][-1]
         for d in range(len(schedules_single_at)-1):
             if(index>schedules_single_at[d][-1] and index<schedules_single_at[d+1][-1]):
                 Schedule_name = schedules_single_at[d][0]
