@@ -250,7 +250,7 @@ def get_index(x,sttring,index, comparer,use_AI):
     dataframe to the given string1 and returns the indes of the string that gets the highest
     match with the string1 and the value of match %.
     '''
-    limit = 0.7
+    limit = 0.6
     matcho=[]
     required_list = []
     main_item=''
@@ -367,7 +367,6 @@ def get_index2(x,sttring, comparer, use_AI, type_of_bid):
     ii = matcho.index(max(matcho))
     return [ii,max(matcho)]
 
-
 def rate_comp1(x,index,rate):
     '''
     This fn aim is to return the quoted bid rate from the dataframe given. It 
@@ -375,16 +374,12 @@ def rate_comp1(x,index,rate):
     percentage, on the whole schedule etc and returns the rate. This fn gets called for a 
     subwork/two table schedule etc.
     '''
-    zz = re.compile('\d+.\d+')
+    zz = re.compile(r'\d+.\d+')
     pattern = r"\b[A-Za-z]+"
     try:
         ss = ' '.join(re.findall(pattern, x.iloc[index,9])).lower()
     except:
         ss = None
-    # if(ss == None or ss==''):
-    #     ss = ' '.join(re.findall(pattern, x.iloc[index+1,9])).lower()
-    #     ###print('Ss = ',ss)
-    #     index+=1
     if('above'== ss):
         per = 1+float(zz.search(x.iloc[index,8]).group())/100
     elif('below'== ss):
@@ -396,7 +391,7 @@ def rate_comp1(x,index,rate):
     rate = round(float(per*float(rate)),2)
     return str(rate)
 def rebate(x,rate):
-    zz = re.compile('\d+.\d+')
+    zz = re.compile(r'\d+.\d+')
     for k in range(len(x)-1,0,-1):
         if(any('rebate' in str(item).lower() for item in x.iloc[k])):
             rate1 = float(rate)*(1-float(zz.search(x.iloc[k,-1]).group())/100)
@@ -407,30 +402,56 @@ def rebate(x,rate):
 def Schedules_at1(items):
     l = []
     for i in range(len(items)):
-        if('schedule ' in items.iloc[i,0].lower() and 'schedule total' not in items.iloc[i,0].lower()):
-            l.append([items.iloc[i,0],i])
+        if(type(items.iloc[i,0]) != float):
+            if('schedule ' in items.iloc[i,0].lower() and 'schedule total' not in items.iloc[i,0].lower()):
+                l.append([items.iloc[i,0],i])
     return l    
+def same_strings(string1, string2):
+    zz= re.compile(r'\w+')
+    string1 = zz.search(string1).group()
+    string2 = zz.search(string2).group()
+    if(string1==string2):
+        return True
+    return False
+def rate_comp(x,index):
+    '''
+    This fn aim is to return the quoted bid rate from the dataframe given. It 
+    takes a dataframe and an index of it as input, sees whether the quotation is as a value, a 
+    percentage, on the whole schedule etc and returns the rate.
+    '''
+    zz = re.compile(r'\d+.\d+')
+    pattern = r"\b[A-Za-z]+"
+
+    # Find all matches
+    ss = ' '.join(re.findall(pattern, x.iloc[index,9])).lower()
+    if('above' in ss):
+        per = 1+float(zz.search(x.iloc[index,8]).group())/100
+    elif('below' in ss):
+        per = 1-float(zz.search(x.iloc[index,8]).group())/100
+    elif(x.iloc[index,8]==x.iloc[index,9]):
+        rate = zz.search(x.iloc[index,8]).group()
+        return rate
+    else:
+        per =1
+    rate = round(float(per*float(zz.search(x.iloc[index,5]).group())),2)
+    return str(rate)
+
 def items_at1(items):
     l = []
     for i in range(len(items)):
         if('item' in items.iloc[i,0].lower()):
             l.append([items.iloc[i,1],i])
     return l
-def same_strings(string1, string2):
-    zz= re.compile('\w+')
-    string1 = zz.search(string1).group()
-    string2 = zz.search(string2).group()
-    if(string1==string2):
-        return True
-    return False
+
 def main_df_writing(L1tab, ww, Schedule_name, rate, matchoa,k,item_s_no, name1):
     L1tab.loc[k,ww]= str(Schedule_name +' S.no. '+item_s_no+'.'+' $#$ '+matchoa+' $#$ '+rate)
     L1tab.loc[k+1,ww]= str(name1+' $#$ '+str(matchoa.split(' $#$ ')[0]))
     print('Written one item to excel sheet')
     return L1tab    
-def single_schedule(x,zz, index, schedules_single_at, rate1):
+def single_schedule(x, zz, index, schedules_single_at, rate1 =0):
     try:
         Schedule_name = schedules_single_at[-1][0]
+        cell = x.iloc[index,8]
         pattern = r"\b[A-Za-z]+"
         try:
             try:
@@ -444,17 +465,31 @@ def single_schedule(x,zz, index, schedules_single_at, rate1):
                 Schedule_name = schedules_single_at[d][0]
                 indexax = schedules_single_at[d][-1]
                 break
-        if('view details' in x.iloc[index,5].lower()):
-            index -=1
+        if(rate1!=0):
+            rate2 = rate1
             if(Essca =='' or Essca == 'at par' or Essca==None):
-                rate = rate1
+                rate = rate2
             elif('-' in x.iloc[index,6]):
-                rate = str(float(rate1)*(1-float(Essca)/100))
+                rate = str(float(rate2)*(1-float(Essca)/100))
             else:
-                rate = str(float(rate1)*(1+float(Essca)/100))
-        cell = x.iloc[index,8]
-        if(cell!='nan' and len(x.columns)==11):
-            rate = rate_comp1(x,index, rate)
+                rate = str(float(rate2)*(1+float(Essca)/100))
+            if(cell!='nan' and len(x.columns)==11):
+                rate = rate_comp1(x, index,rate)
+                if(rate == 'Tender per is done schedulewise'):
+                    for p in range(len(x)-1,0,-1):
+                        if('Total Value' == x.iloc[p,0]):
+                            zzs = rate
+                            rate = rate_comp1(x, p, rate)
+                            if(rate == 'Tender per is done schedulewise'):
+                                rate = zzs
+                                rate = rate_comp1(x, indexax, rate)
+                                break
+                            else:
+                                pass
+                if(rate == 'Tender per is done schedulewise'):
+                    rate = zz.search(x.iloc[index,8]).group()
+        elif(cell!='nan' and len(x.columns)==11):
+            rate = rate_comp(x,index)
         elif(cell!='nan' and len(x.columns)==10):
             rate = zz.search(cell).group()
         elif(cell=='nan'):
@@ -465,7 +500,7 @@ def single_schedule(x,zz, index, schedules_single_at, rate1):
                 rate = str(float(ratea)*(1-float(Essca)/100))
             else:
                 rate = str(float(ratea)*(1+float(Essca)/100))
-            if(x.iloc[index,6].lower()=='at par' or x.iloc[index,6].lower()=='atpar'):
+            if(x.iloc[index,6]=='At Par'):
                 for p in range(len(x)-1,0,-1):
                     if('Total Value' == x.iloc[p,0]):
                         zzs = rate
@@ -479,10 +514,12 @@ def single_schedule(x,zz, index, schedules_single_at, rate1):
         else:
             rate = zz.search(x.iloc[index,8]).group()
         rate = rebate(x,rate)
+        if('item directory - not applicable' in Schedule_name.lower()):
+            Schedule_name = Schedule_name.split('(')[0]
+        return Schedule_name, rate
     except:
         print('Found error comparing at schedule level with\n',x.iloc[index,1])
-        return 0,0
-    return Schedule_name, rate
+        return '0', '0'
 def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
     L1tab = L1tab.applymap(str)
     for i in range(len(LOA_names_dates)):
@@ -503,7 +540,7 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
                 tt = False
                 x =remove_duplicates(x).applymap(str)
                 schedules_single_at1 =Schedules_at1(x)
-            zz = re.compile('\d+.\d+')
+            zz = re.compile(r'\d+.\d+')
             for k in range(len(L1tab)):
                 if tt:
                     try:
@@ -566,7 +603,7 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
                                 except:
                                     continue
                             try:
-                                Schedule_name, rate = single_schedule(schedules,zz, index1,schedules_single_at,rate)
+                                Schedule_name, rate = single_schedule(schedules,zz, index1,schedules_single_at,float(rate))
                                 try:
                                     if(itea in Schedule_name):
                                         name = name1
@@ -603,7 +640,7 @@ def Rates_comparision(L1tab,LOA_names_dates,LOA_ref,comparer,use_AI):
                                 rate = zz.search(x.iloc[index,5]).group().replace(',','')
                             except:
                                 continue
-                            Schedule_name, rate = single_schedule(x,zz,index,schedules_single_at1,rate)
+                            Schedule_name, rate = single_schedule(x,zz,index,schedules_single_at1,float(rate))
                             L1tab = main_df_writing(L1tab, ww, Schedule_name, rate, matchha,k,x.iloc[index,0], x.iloc[index,1])
                     else:
                         schedulea = L1tab.iloc[k,0]
@@ -637,7 +674,7 @@ def LOA_references(L1tab, LOA_reef, PO1,use_AI):
         LOA_file1 = LOA_reef.split(';')
         LOA_files=[]
         Rate_references=[]
-        zz = re.compile('\d+.\d+')
+        zz = re.compile(r'\d+.\d+')
         for i in range(len(LOA_file1)):
             if(LOA_file1[i][-4:]=='html' or LOA_file1[i][-3:]=='htm'):
                 LOA_files.append(LOA_file1[i])
@@ -772,11 +809,11 @@ def LOA_references(L1tab, LOA_reef, PO1,use_AI):
                 comparer.model_delete()
             return Final_PO_report
 def item1_search(df,p):
-    gst = re.compile('\d{2}\s\%')
+    gst = re.compile(r'\d{2}\s\%')
     rate = 0
     others=0 
     per1 = '0'
-    rooat = re.compile('\d+\.\d+')
+    rooat = re.compile(r'\d+\.\d+')
     description=''
     for i in range(p,len(df)):
         if('PL'==df.iloc[i,0].split(' ')[0] or 'Other'==df.iloc[i,0].split(' ')[0]):
@@ -841,7 +878,7 @@ def PO_select(file):
         for k in range(len(dfa)):
             ss.append(dfa[k].df)
         df=pd.concat(ss, ignore_index=True)
-        po_details = re.compile('\s..\d{12} \w+ \d\d-\w+-\d\d')
+        po_details = re.compile(r'\s..\d{12} \w+ \d\d-\w+-\d\d')
         try:
             PO_number = po_details.search(df.iloc[0,0]).group()
         except:
