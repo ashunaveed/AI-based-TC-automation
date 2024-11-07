@@ -200,29 +200,29 @@ def main():
             except:
                 sg.popup('Please select valid sub work HTML/PDF files')
         elif event == "-FINAL_main_work-":
-            #try:
-            filepath = values["-EXCEL1-"]
-            if filepath:
-                processed_data3 = DOCX_writing.main(filepath)
-                toime = datetime.datetime.now().strftime('%H_%M_%S of %d-%m')
-                file_name = f"Final_main_Schedule_report_{toime}.xlsx"
-                folder_path = os.path.join(current_directory,work_folders[2])
-                path3 = os.path.join(folder_path, file_name)
-                processed_data3.to_excel(path3, engine = 'openpyxl')
-                workbook = load_workbook(path3)
-                sheet = workbook.active
-                cols = list(processed_data3.columns)
-                col_num = 1  # Start with the first column in `cols`
-                while col_num <= len(cols)+1:
-                    merge_column(sheet, col_num)
-                    col_num += 1  # Move to the next column
-                for row in sheet.iter_rows():
-                    for cell in row:
-                        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-                workbook.save(path3)
-                sg.popup('The excel sheet is generated with name Final_Schedule_report on the desktop')
-            #except:
-            #    sg.popup('Please select correct main work Excelsheet files')
+            try:
+                filepath = values["-EXCEL1-"]
+                if filepath:
+                    processed_data3 = DOCX_writing.main(filepath)
+                    toime = datetime.datetime.now().strftime('%H_%M_%S of %d-%m')
+                    file_name = f"Final_main_Schedule_report_{toime}.xlsx"
+                    folder_path = os.path.join(current_directory,work_folders[2])
+                    path3 = os.path.join(folder_path, file_name)
+                    processed_data3.to_excel(path3, engine = 'openpyxl')
+                    workbook = load_workbook(path3)
+                    sheet = workbook.active
+                    cols = list(processed_data3.columns)
+                    col_num = 1  # Start with the first column in `cols`
+                    while col_num <= len(cols)+1:
+                        merge_column(sheet, col_num)
+                        col_num += 1  # Move to the next column
+                    for row in sheet.iter_rows():
+                        for cell in row:
+                            cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                    workbook.save(path3)
+                    sg.popup('The excel sheet is generated with name Final_Schedule_report on the desktop')
+            except:
+                sg.popup('Please select correct main work Excelsheet files')
         elif event == "-FINAL_sub_work-":
             try:
                 filepath = values["-EXCEL2-"]
@@ -236,17 +236,10 @@ def main():
                     workbook = load_workbook(path4)
                     sheet = workbook.active
                     cols = list(processed_data4.columns)
-                    for col_num, col in enumerate(cols, start=0):
-                        start_row = None
-                        for row_num in range(2, sheet.max_row + 2):  # Adjusting the loop to consider one more iteration
-                            if row_num <= sheet.max_row and sheet.cell(row=row_num, column=col_num).value == sheet.cell(row=row_num-1, column=col_num).value:
-                                if start_row is None:
-                                    start_row = row_num - 1
-                            else:
-                                if start_row:
-                                    sheet.merge_cells(start_row=start_row, start_column=col_num, end_row=row_num-1, end_column=col_num)
-                                    start_row = None
-
+                    col_num = 1  # Start with the first column in `cols`
+                    while col_num <= len(cols)+1:
+                        merge_column(sheet, col_num)
+                        col_num += 1  # Move to the next column
                     for row in sheet.iter_rows():
                         for cell in row:
                             cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
