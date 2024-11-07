@@ -78,16 +78,23 @@ def main(doca):
         if dox.iloc[i, 0].isdigit():
             try:
                 Esca = float(dox.iloc[i, 7][:-1])
-                unit_rate = float(refgex.search(dox.iloc[i, 5]).group())
-                rate1 = str(unit_rate * (1 + Esca / 100))
+                unit_rate = float(refgex.search(dox.iloc[i, 3]).group())
+                rate1 = str(round(unit_rate * (1 + Esca / 100),2))
             except (ValueError, AttributeError):
                 continue
-            
-            rr = dox.iloc[i, 5]
-            name = f'For the item "{dox.iloc[i + 1, 0]}", The valid L1 has quoted Rs. {rate1} which is {dox.iloc[i, 7]} variation of the advertised rate.'
+            try:
+                rate3 = float(dox.iloc[i,5])+10
+                if(rate3 =='nan'):
+                    rr = dox.iloc[i, 5]
+                else:
+                    rate1= refgex.search(dox.iloc[i, 5]).group()
+                    rr = rate1
+            except:
+                rr = dox.iloc[i,5]
+                rate1 = refgex.search(dox.iloc[i, 5]).group()
+            name = f'For the item "{dox.iloc[i + 1, 0]}", The valid L1 has quoted Rs. {rate1} which is ',str(round(Esca,2)) ,'% variation of the advertised rate.'
             Ref, rates, avg_rate, per, dec = ref_sno(Esca, i, rate1, slab, slab3, dox)
             final_draft = draft(Ref, rates, avg_rate, per, dec, final_draft, Esca, rate1, slab, slab3, dox, name, rr)
         elif dox.iloc[i, 0].lower().startswith('schedule'):
             final_draft.loc[len(final_draft)] = [dox.iloc[i, 0], '**', '**', '**', '**', '**']
-
     return final_draft
