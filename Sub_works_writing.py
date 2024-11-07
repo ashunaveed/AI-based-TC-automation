@@ -3,7 +3,7 @@ import re
 import pandas as pd
 import DOCX_writing
 
-def ref_sno(k, qrate, slab, doccuument, refgexs, bid_slab):
+def ref_sno(k, qrate, slab, doccuument, refgexs):
     ref = []
     rates = []
     avg = 0
@@ -50,22 +50,23 @@ def main_writing(doccuument, final_draft, sheet, refgexs):
                 esca1 = 0
                 if esca_val == 'at par' or esca_val == '' or esca_val=='0%':
                     esca1 = 0
-                elif 'above'== esca_val:
+                elif 'above' in esca_val:
                     esca1 = refgexs.search(esca_val).group()
-                elif 'below' == esca_val:
+                elif 'below' in esca_val:
                     esca1 = '-' + refgexs.search(esca_val).group()
                 else:
                     esca1 = refgexs.search(esca_val).group()
                     if '-' in esca_val:
                         esca1 = '-' + esca1
                 esca1 = float(esca1)
+
                 esca = float(esca1) + float(esca2)
                 rate1 = str(round(float(rate1) * (1 + esca / 100), 2))
             except:
                 continue
-            namw = f"{item_name} Rs.{rate1} which is varying by {round(esca, 2)}% of the advertised rate."
-            Ref, rates, avg_rate, per, dec = ref_sno(i, rate1, slab3, doccuument, refgexs, slab)
-            final_draft = DOCX_writing.draft(Ref, rates, avg_rate, per, dec, final_draft, esca, rate1, slab, slab3, doccuument, namw, rate1)
+            namw = f"{item_name} Rs.{rate1} which is varying by {str(round(float(esca2), 2))}% of the advertised rate."
+            Ref, rates, avg_rate, per, dec = ref_sno(i, rate1, slab3, doccuument, refgexs)
+            final_draft = DOCX_writing.draft(Ref, rates, avg_rate, per, dec, final_draft, esca2, rate1, slab, slab3, doccuument, namw, rate1)
 
         else:
             schedule = doccuument.iloc[i, 0]
