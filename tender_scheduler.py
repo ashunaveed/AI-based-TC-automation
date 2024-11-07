@@ -79,6 +79,26 @@ def merge_and_align_cells(workbook, processed_data, path):
             cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
     workbook.save(path)
 
+def merge_column(sheet, col_num):
+    start_row = None
+    for row_num in range(2, sheet.max_row + 1):
+        current_value = sheet.cell(row=row_num, column=col_num).value
+        previous_value = sheet.cell(row=row_num - 1, column=col_num).value
+
+        # Check if current and previous cell values match
+        if current_value == previous_value and current_value != '**':
+            if start_row is None:
+                start_row = row_num - 1
+        else:
+            # Merge cells if a sequence was identified
+            if start_row is not None:
+                sheet.merge_cells(start_row=start_row, start_column=col_num, end_row=row_num - 1, end_column=col_num)
+                start_row = None
+
+    # Handle merging if the last set of cells needs to be merged
+    if start_row is not None:
+        sheet.merge_cells(start_row=start_row, start_column=col_num, end_row=sheet.max_row, end_column=col_num)
+
 
 def main():
     work_folders = [
@@ -192,16 +212,10 @@ def main():
                 workbook = load_workbook(path3)
                 sheet = workbook.active
                 cols = list(processed_data3.columns)
-                for col_num, col in enumerate(cols, start=1):
-                    start_row = None
-                    for row_num in range(2, sheet.max_row + 2):
-                        if row_num <= sheet.max_row and sheet.cell(row=row_num, column=col_num).value == sheet.cell(row=row_num-1, column=col_num).value:
-                            if start_row is None:
-                                start_row = row_num - 1
-                        else:
-                            if start_row:
-                                sheet.merge_cells(start_row=start_row, start_column=col_num, end_row=row_num-1, end_column=col_num)
-                                start_row = None
+                col_num = 1  # Start with the first column in `cols`
+                while col_num <= len(cols)+1:
+                    merge_column(sheet, col_num)
+                    col_num += 1  # Move to the next column
                 for row in sheet.iter_rows():
                     for cell in row:
                         cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
@@ -222,7 +236,7 @@ def main():
                     workbook = load_workbook(path4)
                     sheet = workbook.active
                     cols = list(processed_data4.columns)
-                    for col_num, col in enumerate(cols, start=1):
+                    for col_num, col in enumerate(cols, start=0):
                         start_row = None
                         for row_num in range(2, sheet.max_row + 2):  # Adjusting the loop to consider one more iteration
                             if row_num <= sheet.max_row and sheet.cell(row=row_num, column=col_num).value == sheet.cell(row=row_num-1, column=col_num).value:
@@ -232,6 +246,7 @@ def main():
                                 if start_row:
                                     sheet.merge_cells(start_row=start_row, start_column=col_num, end_row=row_num-1, end_column=col_num)
                                     start_row = None
+
                     for row in sheet.iter_rows():
                         for cell in row:
                             cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
